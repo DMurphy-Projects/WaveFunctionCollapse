@@ -6,18 +6,26 @@ import java.util.Random;
 
 public class SuperPosition<E, F> {
 
-    ArrayList<State<E>> possibleStates = new ArrayList<State<E>>();
-    ArrayList<Constraint<E, F>> constraints = new ArrayList<Constraint<E, F>>();
-
     static Random r = new Random();
+
+    int totalWeight = 0;
+    ArrayList<State<E>> possibleStates = new ArrayList<State<E>>();
+
+    ArrayList<Constraint<E, F>> constraints = new ArrayList<Constraint<E, F>>();
 
     public void addState(State s)
     {
+        s.setBelongsTo(this);
+
         possibleStates.add(s);
+        addTotalWeight(s.getWeight());
     }
     public void addStates(ArrayList<State<E>> s)
     {
-        possibleStates.addAll(s);
+        for (State<E> state: s)
+        {
+            addState(state);
+        }
     }
 
     public void addConstraint(Constraint c)
@@ -29,6 +37,11 @@ public class SuperPosition<E, F> {
         constraints.addAll(c);
     }
 
+    protected void addTotalWeight(int w)
+    {
+        totalWeight += w;
+    }
+
     public void update()
     {
         Iterator<State<E>> it = possibleStates.iterator();
@@ -38,10 +51,12 @@ public class SuperPosition<E, F> {
 
             for (Constraint c: constraints)
             {
-                if (!c.allowed(state)) {
-                    it.remove();
-                    break;
-                }
+                c.updateProbability(state);
+            }
+
+            if (state.getWeight() == 0)
+            {
+                it.remove();
             }
         }
     }
@@ -52,15 +67,22 @@ public class SuperPosition<E, F> {
     }
 
     public boolean hasCollapsed() {
-        return possibleStates.size() == 0;
+        return getEntropy() == 0;
     }
 
     public State<E> collapse()
     {
-        int choice = r.nextInt(possibleStates.size());
-        State<E> colapsedState = possibleStates.get(choice);
-        possibleStates.clear();
+        int choice = r.nextInt(totalWeight);
+        for (State collapsedState: possibleStates)
+        {
+            choice -= collapsedState.getWeight();
+            if (choice <= 0)
+            {
+                possibleStates.clear();
+                return collapsedState;
+            }
+        }
 
-        return colapsedState;
+        return null;
     }
 }

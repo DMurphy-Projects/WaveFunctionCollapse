@@ -28,23 +28,32 @@ public class Sudoku {
 
         final Constraint<SudokuPosition, SudokuGrid> rowConstraint = new Constraint<SudokuPosition, SudokuGrid>(grid) {
             @Override
-            protected boolean allowed(State<SudokuPosition> state) {
+            protected void updateProbability(State<SudokuPosition> state) {
                 int[] row = model.getRow(model.positionToRow(state.getModelState().getPosition()));
-                return !Arrays.stream(row).anyMatch(x -> x == state.getModelState().getValue());
+                if (Arrays.stream(row).anyMatch(x -> x == state.getModelState().getValue()))
+                {
+                    state.updateWeight(0);
+                }
             }
         };
         final Constraint<SudokuPosition, SudokuGrid> columnConstraint = new Constraint<SudokuPosition, SudokuGrid>(grid) {
             @Override
-            protected boolean allowed(State<SudokuPosition> state) {
+            protected void updateProbability(State<SudokuPosition> state) {
                 int[] col = model.getColumn(model.positionToColumn(state.getModelState().getPosition()));
-                return !Arrays.stream(col).anyMatch(x -> x == state.getModelState().getValue());
+                if(Arrays.stream(col).anyMatch(x -> x == state.getModelState().getValue()))
+                {
+                    state.updateWeight(0);
+                }
             }
         };
         final Constraint<SudokuPosition, SudokuGrid> gridConstraint = new Constraint<SudokuPosition, SudokuGrid>(grid) {
             @Override
-            protected boolean allowed(State<SudokuPosition> state) {
+            protected void updateProbability(State<SudokuPosition> state) {
                 int[] iGrid = model.getInnerGrid(model.positionToInnerGrid(state.getModelState().getPosition()));
-                return !Arrays.stream(iGrid).anyMatch(x -> x == state.getModelState().getValue());
+                if(Arrays.stream(iGrid).anyMatch(x -> x == state.getModelState().getValue()))
+                {
+                    state.updateWeight(0);
+                }
             }
         };
 
@@ -62,7 +71,7 @@ public class Sudoku {
             if (grid.getPosition(i) == 0) {
                 SuperPosition<SudokuPosition, SudokuGrid> position = new SuperPosition<SudokuPosition, SudokuGrid>();
                 for (int j = 1; j < 10; j++) {
-                    position.addState(new State<SudokuPosition>(new SudokuPosition(i, j)));
+                    position.addState(new State<SudokuPosition>(new SudokuPosition(i, j), 1));
                 }
                 position.addConstraints(constraints);
 
@@ -102,6 +111,7 @@ public class Sudoku {
             if (grid.getPosition(i) == 0)
             {
                 System.out.println("Sudoku Invalid");
+                break;
             }
         }
     }

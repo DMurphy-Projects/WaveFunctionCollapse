@@ -9,5 +9,5 @@ public abstract class Constraint<E, F> {
         model = m;
     }
 
-    protected abstract boolean allowed(State<E> state);
+    protected abstract void updateProbability(State<E> state);
 }
